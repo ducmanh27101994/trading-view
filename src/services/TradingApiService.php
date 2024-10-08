@@ -2,6 +2,8 @@
 
 namespace Fmcpay\TradingView\services;
 
+use Fmcpay\TradingView\database\seeders\ExchangeChart1DSeeder;
+use Fmcpay\TradingView\Models\MGExchangeChart1D;
 use Illuminate\Support\Facades\DB;
 
 class TradingApiService
@@ -80,6 +82,32 @@ class TradingApiService
             $data['session-regular'] = config('symbol_groups.session-regular');
         }
 
+        return $data;
+    }
+
+    public function historyChartData($symbol, $from, $to, $resolution)
+    {
+        $data = [];
+        if ($resolution == '1D') {
+            $historicalData = MGExchangeChart1D::where('mc', $symbol)
+                ->where('date', '>=', "$from")
+                ->where('date', '<=', "$to")
+                ->orderBy('date')
+                ->get();
+
+            if (!empty($historicalData)) {
+                $data = [
+                    's' => 'ok',
+                    't' => $historicalData->pluck('date')->toArray(),
+                    'o' => $historicalData->pluck('open')->toArray(),
+                    'h' => $historicalData->pluck('high')->toArray(),
+                    'l' => $historicalData->pluck('low')->toArray(),
+                    'c' => $historicalData->pluck('close')->toArray(),
+                    'v' => $historicalData->pluck('volume')->toArray(),
+                    'nextTime' => time(),
+                ];
+            }
+        }
         return $data;
     }
 }

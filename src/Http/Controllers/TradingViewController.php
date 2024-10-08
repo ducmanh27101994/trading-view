@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Fmcpay\TradingView\services\TradingApiService;
 use Fmcpay\TradingView\Models\Symbol;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class TradingViewController
 {
@@ -125,12 +126,28 @@ class TradingViewController
 
     public function historyTradingView(Request $request)
     {
-        $symbol = $request->input('symbol');
-        $from = $request->input('from');
-        $to = $request->input('to');
-        $resolution = $request->input('to');
 
+        $input = $request->all();
+        $validate = Validator::make($input, [
+            'symbol' => 'required',
+            'from' => 'required',
+            'to' => 'required',
+            'resolution' => 'required',
+        ], [
+            'symbol.required' => 'Chưa gửi mã symbol.',
+            'from.required' => 'Chưa gửi thời gian bắt đầu.',
+            'to.required' => 'Chưa gửi thời gian kết thúc.',
+            'resolution.required' => 'Chưa gửi resolution.',
+        ]);
 
+        if ($validate->fails()) {
+            return response()->json([
+                'message' => $validate->errors(),
+                'status' => 400,
+            ]);
+        }
+
+        $data = $this->tradingApiService->historyChartData($input['symbol'], $input['from'], $input['to'], $input['resolution']);
 
         return response()->json([
             'message' => 'Success',
