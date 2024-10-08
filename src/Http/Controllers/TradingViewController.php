@@ -125,6 +125,10 @@ class TradingViewController
 
     public function historyTradingView(Request $request)
     {
+        $symbol = $request->input('symbol');
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $resolution = $request->input('to');
 
 
 
