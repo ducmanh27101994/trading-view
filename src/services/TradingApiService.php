@@ -2,132 +2,84 @@
 
 namespace Fmcpay\TradingView\services;
 
+use Illuminate\Support\Facades\DB;
+
 class TradingApiService
 {
-    const symbolInfo = [
-        'AAPL' => [
-            'symbol' => 'AAPL',
-            'full_name' => 'NASDAQ:AAPL',
-            'description' => 'Apple Inc.',
-            'exchange' => 'NASDAQ',
-            'ticker' => 'AAPL',
-            'type' => 'stock',
-            'session' => '0930-1600',
-            'timezone' => 'America/New_York',
-            'minmov' => 1,
-            'pricescale' => 100,
-            'minmove2' => 0,
-            'fractional' => false,
-            'has_intraday' => true,
-            'supported_resolutions' => ['1', '5', '15', '30', '60', '1D'],
-            'intraday_multipliers' => [1, 5, 15, 30, 60],
-            'has_seconds' => false,
-            'seconds_multipliers' => [],
-            'has_daily' => true,
-            'has_weekly_and_monthly' => true,
-            'has_empty_bars' => false,
-            'force_session_rebuild' => true,
-            'has_no_volume' => false,
-            'volume_precision' => 0,
-            'data_status' => 'streaming',
-            'expired' => false,
-            'expiration_date' => null,
-            'sector' => 'Technology',
-            'industry' => 'Consumer Electronics',
-            'currency_code' => 'USD',
-        ],
-        'AAL' => [
-            'symbol' => 'AAL',
-            'full_name' => 'NASDAQ:AAL',
-            'description' => 'American Airlines Group Inc.',
-            'exchange' => 'NASDAQ',
-            'ticker' => 'AAL',
-            'type' => 'index',
-            'session' => '0930-1600',
-            'timezone' => 'America/New_York',
-            'minmov' => 1,
-            'pricescale' => 100,
-            'minmove2' => 0,
-            'fractional' => false,
-            'has_intraday' => true,
-            'supported_resolutions' => ['1', '5', '15', '30', '60', '1D'],
-            'intraday_multipliers' => [1, 5, 15, 30, 60],
-            'has_seconds' => false,
-            'seconds_multipliers' => [],
-            'has_daily' => true,
-            'has_weekly_and_monthly' => true,
-            'has_empty_bars' => false,
-            'force_session_rebuild' => true,
-            'has_no_volume' => false,
-            'volume_precision' => 0,
-            'data_status' => 'streaming',
-            'expired' => false,
-            'expiration_date' => null,
-            'sector' => 'Industrials',
-            'industry' => 'Airlines',
-            'currency_code' => 'USD',
-        ],
-        'MSFT' => [
-            'symbol' => 'MSFT',
-            'full_name' => 'NASDAQ:MSFT',
-            'description' => 'Microsoft Corp.',
-            'exchange' => 'NASDAQ',
-            'ticker' => 'MSFT',
-            'type' => 'stock',
-            'session' => '0930-1600',
-            'timezone' => 'America/New_York',
-            'minmov' => 1,
-            'pricescale' => 100,
-            'minmove2' => 0,
-            'fractional' => false,
-            'has_intraday' => true,
-            'supported_resolutions' => ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
-            'intraday_multipliers' => [1, 5, 15, 30, 60],
-            'has_seconds' => false,
-            'has_daily' => true,
-            'has_weekly_and_monthly' => true,
-            'has_empty_bars' => false,
-            'force_session_rebuild' => true,
-            'has_no_volume' => false,
-            'volume_precision' => 0,
-            'data_status' => 'streaming',
-            'expired' => false,
-            'expiration_date' => null,
-            'sector' => 'Technology',
-            'industry' => 'Software',
-            'currency_code' => 'USD',
-        ],
-    ];
-
 
     public function getConfig()
     {
-        return [
-            'supported_resolutions' => ['1', '5', '15', '30', '60', '1D', '1W', '1M'],
-            'supports_group_request' => true,
-            'supports_marks' => false,
-            'supports_search' => true,
-            'supports_timescale_marks' => false,
-            // symbols_grouping: groups symbols into categories like stock, futures, index, etc.
-            'symbols_grouping' => [
-                "futures" => "/^(.+)([12]!|[FGHJKMNQUVXZ]\\d{1,2})$/",
-                "stock" => "/^(.+)([12]!|[FGHJKMNQUVXZ]\\d{1,2})$/",
-                "index" => "/^(.+)([12]!|[FGHJKMNQUVXZ]\\d{1,2})$/"
-            ],
-            // symbols_types: defines the symbol types for the search filters, including index
-            'symbols_types' => [
-                ['name' => 'All types', 'value' => ''],
-                ['name' => 'Stock', 'value' => 'stock'],
-                ['name' => 'Futures', 'value' => 'futures'],
-                ['name' => 'Forex', 'value' => 'forex'],
-                ['name' => 'Crypto', 'value' => 'crypto'],
-                ['name' => 'Index', 'value' => 'index']
-            ]
-        ];
+        return config('trading_view');
     }
 
     public function getSymbol($symbol)
     {
-        return TradingApiService::symbolInfo[strtoupper($symbol)] ?? null;
+        $result = DB::table('symbols')
+            ->where('base', $symbol)
+            ->select(['base', 'title', 'quote'])
+            ->first();
+
+        $data = [];
+        if (!empty($result)) {
+            $data['symbol'] = strtoupper($result->base);
+            $data['full_name'] = $result->title;
+            $data['description'] = $result->title;
+            $data['exchange'] = $result->quote;
+            $data['ticker'] = strtoupper($result->base);
+
+            $data['type'] = config('symbol_info.type');
+            $data['session'] = config('symbol_info.session');
+            $data['timezone'] = config('symbol_info.timezone');
+            $data['minmov'] = config('symbol_info.minmov');
+            $data['pricescale'] = config('symbol_info.pricescale');
+            $data['minmove2'] = config('symbol_info.minmove2');
+            $data['fractional'] = config('symbol_info.fractional');
+            $data['has_intraday'] = config('symbol_info.has_intraday');
+            $data['supported_resolutions'] = config('symbol_info.supported_resolutions');
+            $data['intraday_multipliers'] = config('symbol_info.intraday_multipliers');
+            $data['has_seconds'] = config('symbol_info.has_seconds');
+            $data['seconds_multipliers'] = config('symbol_info.seconds_multipliers');
+            $data['has_daily'] = config('symbol_info.has_daily');
+            $data['has_weekly_and_monthly'] = config('symbol_info.has_weekly_and_monthly');
+            $data['has_empty_bars'] = config('symbol_info.has_empty_bars');
+            $data['force_session_rebuild'] = config('symbol_info.force_session_rebuild');
+            $data['has_no_volume'] = config('symbol_info.has_no_volume');
+            $data['volume_precision'] = config('symbol_info.volume_precision');
+            $data['data_status'] = config('symbol_info.data_status');
+            $data['expired'] = config('symbol_info.expired');
+            $data['expiration_date'] = config('symbol_info.expiration_date');
+            $data['sector'] = config('symbol_info.sector');
+            $data['industry'] = config('symbol_info.industry');
+            $data['currency_code'] = config('symbol_info.currency_code');
+        }
+
+        return $data;
+    }
+
+    public function getSymbolGroup($symbolGroup)
+    {
+        $result = DB::table('symbols')
+            ->where('quote', $symbolGroup)
+            ->pluck('base')
+            ->toArray();
+
+        $data = [];
+        if (!empty($result)) {
+            $data['symbol'] = $result;
+            $data['description'] = $result;
+            $data['exchange-listed'] = $symbolGroup;
+            $data['exchange-traded'] = $symbolGroup;
+            $data['minmovement'] = config('symbol_groups.minmovement');
+            $data['minmovement2'] = config('symbol_groups.minmovement2');
+            $data['has-dwm'] = config('symbol_groups.has-dwm');
+            $data['has-intraday'] = config('symbol_groups.has-intraday');
+            $data['has-no-volume'] = config('symbol_groups.has-no-volume');
+            $data['type'] = config('symbol_groups.type');
+            $data['ticker'] = $result;
+            $data['timezone'] = config('symbol_groups.timezone');
+            $data['session-regular'] = config('symbol_groups.session-regular');
+        }
+
+        return $data;
     }
 }
