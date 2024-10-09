@@ -8,11 +8,7 @@ Route::post('/config', [TradingViewController::class, 'configTradingView']);
 Route::post('/symbols', [TradingViewController::class, 'symbolsTradingView']);
 Route::post('/symbol_info', [TradingViewController::class, 'symbolsGroupTradingView']);
 Route::post('/history', [TradingViewController::class, 'historyTradingView']);
-Route::get('/test', function (){
 
-    phpinfo();
-
-});
 
 
 
