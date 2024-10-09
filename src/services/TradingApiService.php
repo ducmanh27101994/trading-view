@@ -90,8 +90,7 @@ class TradingApiService
         $data = [];
         if ($resolution == '1D') {
             $historicalData = MGExchangeChart1D::where('mc', $symbol)
-                ->where('date', '>=', "$from")
-                ->where('date', '<=', "$to")
+                ->whereBetween('date', ["$from", "$to"])
                 ->orderBy('date')
                 ->get();
 
@@ -110,4 +109,5 @@ class TradingApiService
         }
         return $data;
     }
+
 }

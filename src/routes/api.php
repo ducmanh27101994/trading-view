@@ -10,8 +10,6 @@ Route::post('/symbol_info', [TradingViewController::class, 'symbolsGroupTradingV
 Route::post('/history', [TradingViewController::class, 'historyTradingView']);
 
 
-
-
 // Cập nhật DB test
 Route::post('/insertOrUpdateDBSymbols', [TradingViewController::class, 'insertOrUpdateDBSymbols']);
 

@@ -157,4 +157,5 @@ class TradingViewController
     }
 
 
+
 }
